@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Chatbot</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js for graphs -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #94d9ee;
+      position: relative;
+    }
+    #chat-container {
+      width: 400px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    #chat-display {
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    .chat-message {
+      margin-bottom: 15px;
+      padding: 8px 12px;
+      border-radius: 18px;
+      max-width: 80%;
+      position: relative;
+    }
+    .user-message {
+      background-color: #58cc71;
+      color: white;
+      margin-left: auto;
+      text-align: right;
+    }
+    .bot-message {
+      background-color: rgb(82, 172, 255);
+      color: white;
+      margin-right: auto;
+      text-align: left;
+    }
+    .message-time {
+      font-size: 10px;
+      color: rgba(0,0,0,0.5);
+      position: absolute;
+      bottom: -15px;
+    }
+    .user-message .message-time {
+      right: 5px;
+    }
+    .bot-message .message-time {
+      left: 5px;
+    }
+    #input-form {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #question {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    #send-btn, #mic-btn {
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #send-btn:hover, #mic-btn:hover {
+      background-color: #45a049;
+    }
+
+    /* Pulse animation */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    #mic-btn.listening {
+      animation: pulse 1.2s infinite;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .chat-header img {
+      width: 40px;
+      height: 40px;
+      margin-right: 10px;
+    }
+    
+    /* Stats Button Styling */
+    #stats-button {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      padding: 12px 15px;
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+    
+    #stats-button:hover {
+      background-color: #ff5252;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    #stats-button i {
+      font-size: 16px;
+    }
+
+    /* Graph Section */
+    #graph-section {
+      width: 100%;
+      margin-top: 20px;
+      display: none; /* Hidden initially */
+      text-align: center;
+    }
+    #graph-section canvas {
+      max-width: 100%;
+      height: 300px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div class="chat-header">
+      <img src="https://cdn-icons-png.flaticon.com/512/387/387569.png" alt="Chatbot">
+      <h2>Medical Chatbot</h2>
+    </div>
+    <div id="chat-display"></div>
+    
+    <!-- Updated Form with Mic Button -->
+    <form id="input-form">
+      <input type="text" id="question" placeholder="Type your question here..." autocomplete="off" required />
+      <button type="button" id="mic-btn" title="Voice Input">
+        <i class="fas fa-microphone"></i>
+      </button>
+      <button type="submit" id="send-btn">Send</button>
+    </form>
+  </div>
+  
+  <!-- Stats Button as direct link -->
+  <a id="stats-button" href="https://app.powerbi.com/reportEmbed?reportId=0f662a19-aa90-45c5-b792-a3be6358e433&autoAuth=true&ctid=2c5bdaf4-8ff2-4bd9-bd54-7c50ab219590" target="_blank">
+    <i class="fas fa-chart-line"></i>
+    For more information about rising diseases and stats click here
+  </a>
+
+  <!-- Graph Section -->
+  <div id="graph-section">
+    <h3>Disease Statistics</h3>
+    <canvas id="diseaseGraph"></canvas>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $("#input-form").on("submit", function(event) {
+        event.preventDefault();
+        const date = new Date();
+        const hour = date.getHours().toString().padStart(2, '0');
+        const minute = date.getMinutes().toString().padStart(2, '0');
+        const str_time = hour + ":" + minute;
+        var rawText = $("#question").val();
+
+        if (!rawText) return;
+
+        var userHtml = `
+          <div class="chat-message user-message">
+            ${rawText}
+            <span class="message-time">${str_time}</span>
+          </div>`;
+        
+        $("#question").val("");
+        $("#chat-display").append(userHtml);
+        $("#chat-display").scrollTop($("#chat-display")[0].scrollHeight);
+
+        $.ajax({
+          data: {
+            msg: rawText,
+          },
+          type: "POST",
+          url: "/get",
+        }).done(function(data) {
+            let messageText = "";
+  
+            if (typeof data === "object") {
+    messageText = data.text || "Here's the data.";
+
+    var botHtml = `
+        <div class="chat-message bot-message">
+        ${messageText}
+        <span class="message-time">${str_time}</span>
+        </div>`;
+    
+    $("#chat-display").append(botHtml);
+
+    // If an image URL is returned
+    if (data.image_url) {
+        var imageHtml = `
+            <div class="chat-message bot-message">
+              <img src="${data.image_url}" alt="Graph" class="response-img" style="max-width: 100%; border-radius: 8px;" />
+              <span class="message-time">${str_time}</span>
+            </div>`;
+        $("#chat-display").append(imageHtml);
+    }
+
+    // If it's a graph query with data
+    if (data.type === "graph_query") {
+        showGraph(data.labels, data.data);
+    }
+
+} else {
+    var botHtml = `
+        <div class="chat-message bot-message">
+        ${data}
+        <span class="message-time">${str_time}</span>
+        </div>`;
+    $("#chat-display").append(botHtml);
+}
+
+$("#chat-display").scrollTop($("#chat-display")[0].scrollHeight);
+
+        });
+      });
+
+      // Voice recognition with silence stop
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        const micBtn = document.getElementById('mic-btn');
+        const questionInput = document.getElementById('question');
+
+        micBtn.addEventListener('click', () => {
+          recognition.start();
+          micBtn.classList.add('listening');
+          console.log("🎤 Listening started...");
+        });
+
+        recognition.onresult = function(event) {
+          const transcript = event.results[0][0].transcript;
+          questionInput.value = transcript;
+          console.log("✅ Transcript:", transcript);
+          document.getElementById("input-form").requestSubmit();
+        };
+
+        recognition.onend = function() {
+          micBtn.classList.remove('listening');
+          console.log("🛑 Listening stopped (pause or done).");
+        };
+
+        recognition.onerror = function(event) {
+          micBtn.classList.remove('listening');
+          console.error("❌ Speech recognition error:", event.error);
+        };
+      } else {
+        alert("Speech Recognition is not supported in your browser.");
+      }
+    });
+
+    // Function to display graph
+    function showGraph(labels = [], dataPoints = []) {
+  const ctx = document.getElementById('diseaseGraph').getContext('2d');
+  document.getElementById('graph-section').style.display = 'block';
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels.length ? labels : ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024'],
+      datasets: [{
+        label: 'Reported Cases of Flu',
+        data: dataPoints.length ? dataPoints : [100, 150, 200, 250, 230, 300, 350, 370, 390, 420],
+        borderColor: '#3e95cd',
+        fill: false,
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+</script> 
+</body> 
+</html> 
+

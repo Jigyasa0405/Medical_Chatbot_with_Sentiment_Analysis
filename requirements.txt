@@ -1,0 +1,18 @@
+sounddevice==0.5.1
+sentence-transformers==4.1.0
+langchain
+flask
+pypdf
+python-dotenv
+pinecone-client[grpc]
+langchain-pinecone
+langchain_community
+langchain_groq
+langchain_experimental
+openai-whisper
+torch
+torchaudio
+matplotlib
+scipy
+uuid  # optional, Python stdlib – no need to include unless you are on a very specific env
+-e .
