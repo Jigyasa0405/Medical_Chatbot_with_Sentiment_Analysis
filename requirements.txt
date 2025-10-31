@@ -15,4 +15,4 @@ torchaudio
 matplotlib
 scipy
 uuid  # optional, Python stdlib – no need to include unless you are on a very specific env
--e .
+
