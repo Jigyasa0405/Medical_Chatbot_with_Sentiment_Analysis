@@ -1,9 +1,9 @@
-🩺 AgadVed: Medical Chatbot with Sentiment Analysis
+# 🩺 AgadVed: Medical Chatbot with Sentiment Analysis
 
 AgadVed is an intelligent medical assistant that helps users get reliable health-related information in real time. Built with Flask, LangChain, Pinecone, and Groq LLM, this chatbot uses retrieval-augmented generation (RAG) to provide accurate, concise medical responses and dynamically visualize disease data.
 The new version integrates Sentiment Analysis to detect the emotional tone of user queries (positive, neutral, or negative) and respond empathetically — improving user engagement and personalization.
 
-🚀 Features
+## 🚀 Features
     
     -> Retrieval-Augmented Generation (RAG) for context-aware, precise medical answers.
     
@@ -17,7 +17,7 @@ The new version integrates Sentiment Analysis to detect the emotional tone of us
     
     -> Pinecone Vector Store for fast semantic search over medical documents.
 
-🧩 Tech Stack
+## 🧩 Tech Stack
 
     -> Component	--  Technology
     
@@ -37,7 +37,7 @@ The new version integrates Sentiment Analysis to detect the emotional tone of us
     
     -> Visualization	--  Matplotlib / Seaborn
     
-⚙️ Installation
+## ⚙️ Installation
     
     -> Future Improvements
     
