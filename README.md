@@ -37,10 +37,8 @@ The new version integrates Sentiment Analysis to detect the emotional tone of us
     
     -> Visualization	--  Matplotlib / Seaborn
     
-## ⚙️ Installation
-    
-    -> Future Improvements
-    
+## 🧠 Future Improvements
+
     -> Add multilingual support.
     
     -> Integrate advanced emotion recognition models.
